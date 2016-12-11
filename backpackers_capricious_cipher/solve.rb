@@ -28,19 +28,20 @@ p "target sum: #{pub[0]}" # sum がこれになって欲しい
 key = pub[1] # key
 # p key
 
-Parallel.each(0...N, in_processes: 8) do |i|
+Parallel.each(0..N, in_processes: 8) do |i|
     puts "#{i}"
 
     base = Array.new (N) { 1 }
-    for j in 0..i do
+    for j in 0...i do
         base[j] = 0
     end
 
-    base.permutation(N) do |cand|
+    base.permutation do |cand|
         priv_key = cand
 
         sum = priv_key.zip(key).map{|a,b| a * b}.inject(:+) % P
         # p "sum: #{sum}"
+
         if sum == pub[0] then
             dec = decrypt(enc, priv_key)
 
