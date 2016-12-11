@@ -28,31 +28,44 @@ p "target sum: #{pub[0]}" # sum がこれになって欲しい
 key = pub[1] # key
 # p key
 
-Parallel.each(0..N, in_processes: 8) do |i|
-    puts "#{i}"
+class Array
+  def cartesian_power(n)
+    current = [0] * n
+    last = [size - 1] * n
 
-    base = Array.new (N) { 1 }
-    for j in 0...i do
-        base[j] = 0
+    loop do
+      yield current.reverse.collect { |i| self[i] }
+      break if current == last
+
+      (0...n).each do |index|
+        current[index] += 1
+        current[index] %= size
+
+        break if current[index] > 0
+      end
     end
+  end
+end
 
-    base.permutation do |cand|
-        priv_key = cand
 
-        sum = priv_key.zip(key).map{|a,b| a * b}.inject(:+) % P
-        # p "sum: #{sum}"
+[0, 1].cartesian_power(N) do |cand|
+    # p cand
+    priv_key = cand
 
-        if sum == pub[0] then
-            dec = decrypt(enc, priv_key)
+    sum = priv_key.zip(key).map{|a,b| a * b}.inject(:+) % P
+    # p "sum: #{sum}"
 
-            # decode
-            plain = [dec.to_s(16)].pack("H*")
+    if sum == pub[0] then
+        dec = decrypt(enc, priv_key)
 
-            # p "length: #{plain.length}"
-            # # 12 文字みたい
-            # # SECCON{.} で 8 文字使うからあと 4 文字? それとも {} の中だけ出てる?
+        # decode
+        plain = [dec.to_s(16)].pack("H*")
 
-            p "plain: #{plain}"
-        end
+        # p "length: #{plain.length}"
+        # # 12 文字みたい
+        # # SECCON{.} で 8 文字使うからあと 4 文字? それとも {} の中だけ出てる?
+
+        p "plain: #{plain}"
+        break
     end
 end
